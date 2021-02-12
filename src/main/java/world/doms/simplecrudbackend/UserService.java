@@ -2,6 +2,7 @@ package world.doms.simplecrudbackend;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,5 +36,23 @@ public class UserService {
             throw new UserNotFoundException(String.format("User with ID '%s' was not found", id));
         }
         return requestedUser.get();
+    }
+
+    @Transactional
+    public User updateUser(long id, UserRequest userToUpdateRequest) {
+
+        Optional<User> userFromDatabase = userRepository.findById(id);
+
+        if (userFromDatabase.isEmpty()) {
+            throw new UserNotFoundException(String.format("User with ID: '%s' was not found", id));
+        }
+
+        User userToUpdate = userFromDatabase.get();
+
+        userToUpdate.setFirstName(userToUpdateRequest.getFirstName());
+        userToUpdate.setLastName(userToUpdateRequest.getLastName());
+        userToUpdate.setEmail(userToUpdateRequest.getEmail());
+
+        return userToUpdate;
     }
 }

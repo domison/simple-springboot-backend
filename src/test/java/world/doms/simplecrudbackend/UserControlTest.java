@@ -17,9 +17,9 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -36,7 +36,7 @@ public class UserControlTest {
     private UserService userService;
 
     @Captor
-    private ArgumentCaptor<UserRequest> argumentCaptor;
+    private ArgumentCaptor<UserRequest> userRequestArgumentCaptor;
 
     @Test
     public void postingANewUserCreatesNewUserInDB() throws Exception {
@@ -46,7 +46,7 @@ public class UserControlTest {
         userRequest.setLastName("Elster");
         userRequest.setEmail("Elster_Eva@birdwatcher.com");
 
-        when(userService.createNewUser(argumentCaptor.capture())).thenReturn(1L);
+        when(userService.createNewUser(userRequestArgumentCaptor.capture())).thenReturn(1L);
 
         this.mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -55,9 +55,9 @@ public class UserControlTest {
                 .andExpect(header().exists("Location"))
                 .andExpect(header().string("Location", "http://localhost/api/users/1"));
 
-        assertThat(argumentCaptor.getValue().getEmail(), is("Elster_Eva@birdwatcher.com"));
-        assertThat(argumentCaptor.getValue().getFirstName(), is("Eva"));
-        assertThat(argumentCaptor.getValue().getLastName(), is("Elster"));
+        assertThat(userRequestArgumentCaptor.getValue().getEmail(), is("Elster_Eva@birdwatcher.com"));
+        assertThat(userRequestArgumentCaptor.getValue().getFirstName(), is("Eva"));
+        assertThat(userRequestArgumentCaptor.getValue().getLastName(), is("Elster"));
     }
 
     @Test
@@ -98,6 +98,49 @@ public class UserControlTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    public void updateUserWithKnownIdShouldUpdateTheUser() throws Exception {
+
+        UserRequest userRequest = new UserRequest();
+        userRequest.setFirstName("Ave-Maria");
+        userRequest.setLastName("Maier");
+        userRequest.setEmail("Ave-Maria.Maier@finanzamt.de");
+
+        when(userService.updateUser(eq(1L), userRequestArgumentCaptor.capture()))
+                .thenReturn(createUser(1L, "Ave-Maria", "Maier", "Ave-Maria.Maier@finanzamt.de"));
+
+        this.mockMvc
+                .perform(put("/api/users/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userRequest)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.firstName", is("Ave-Maria")))
+                .andExpect(jsonPath("$.lastName", is("Maier")))
+                .andExpect(jsonPath("$.email", is("Ave-Maria.Maier@finanzamt.de")))
+                .andExpect(jsonPath("$.id", is(1)));
+
+        assertThat(userRequestArgumentCaptor.getValue().getFirstName(), is("Ave-Maria"));
+        assertThat(userRequestArgumentCaptor.getValue().getLastName(), is("Maier"));
+        assertThat(userRequestArgumentCaptor.getValue().getEmail(), is("Ave-Maria.Maier@finanzamt.de"));
+    }
+
+    @Test
+    public void updateUserWithUnknownIdShouldReturnException() throws Exception {
+
+        UserRequest userRequest = new UserRequest();
+        userRequest.setFirstName("Ave-Maria");
+        userRequest.setLastName("Maier");
+        userRequest.setEmail("Ave-Maria.Maier@finanzamt.de");
+
+        when(userService.updateUser(eq(55L), userRequestArgumentCaptor.capture()))
+                .thenThrow(new UserNotFoundException("User with ID 55 was not found"));
+
+        this.mockMvc.perform(put("/api/users/55")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(userRequest)))
+                .andExpect(status().isNotFound());
+    }
     private User createUser(long id, String firstName, String lastName, String email) {
 
         User user = new User();
