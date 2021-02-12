@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -38,6 +39,19 @@ public class UserService {
         return requestedUser.get();
     }
 
+    public List<User> getUserByName(String firstName) {
+        List<User> usersWithName = userRepository.findAll()
+                .stream()
+                .filter(user -> user.getFirstName().equals(firstName))
+                .collect(Collectors.toList());
+
+        if (usersWithName.isEmpty()) {
+            throw new UserNotFoundException(String.format("No User with name: '%s' was found", firstName));
+        }
+
+        return usersWithName;
+    }
+
     @Transactional
     public User updateUser(long id, UserRequest userToUpdateRequest) {
 
@@ -59,4 +73,6 @@ public class UserService {
     public void deleteBookById(Long id) {
         userRepository.deleteById(id);
     }
+
+
 }

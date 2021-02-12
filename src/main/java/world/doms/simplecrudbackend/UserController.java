@@ -41,6 +41,11 @@ class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @GetMapping("/{firstName}")
+    public ResponseEntity<List<User>> getUserByName(@PathVariable("firstName") String firstName) {
+        return ResponseEntity.ok(userService.getUserByName(firstName));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UserRequest userRequest) {
         return ResponseEntity.ok(userService.updateUser(id, userRequest));

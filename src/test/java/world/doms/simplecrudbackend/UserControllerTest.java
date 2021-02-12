@@ -1,6 +1,7 @@
 package world.doms.simplecrudbackend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
@@ -89,6 +91,7 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.email", is("whiteknight@medivalfestival.com")))
                 .andExpect(jsonPath("$.id", is(2)));
     }
+
 
     @Test
     public void getUserWithUnknownIdShouldReturnError() throws Exception {
