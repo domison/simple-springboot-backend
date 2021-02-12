@@ -55,4 +55,8 @@ public class UserService {
 
         return userToUpdate;
     }
+
+    public void deleteBookById(Long id) {
+        userRepository.deleteById(id);
+    }
 }

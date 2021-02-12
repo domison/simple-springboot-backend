@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(UserController.class)
-public class UserControlTest {
+public class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -151,5 +151,4 @@ public class UserControlTest {
 
         return user;
     }
-
 }
